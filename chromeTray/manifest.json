@@ -1,7 +1,9 @@
 {
   "name": "Minimize Chrome to tray",
-  "version": "1.0",
+  "version": "1.0.1.24",
   "description": "Extension to minimize Chrome window to the system tray.",
   "background_page": "background.html",
-  "plugins": [{"path": "chromeTray.dll"}]
+  "plugins": [{"path": "chromeTray.dll"}],
+  "permissions": ["tabs"],
+  "options_page": "options.html"
 }
