@@ -2,10 +2,12 @@
 
 #include <ShellAPI.h>
 
-#define WM_TRAY_FIRST				WM_USER + 3
+#define WM_TRAY_FIRST		WM_USER + 3
 
-#define WM_TRAY_CONTEXT_MENU		WM_TRAY_FIRST + 1
-#define WM_TRAY_DBLCLICK			WM_TRAY_FIRST + 2
+#define WM_TRAY_RCLICK		WM_TRAY_FIRST + 1
+#define WM_TRAY_LCLICK		WM_TRAY_FIRST + 2
+#define WM_TRAY_RDBLCLICK	WM_TRAY_FIRST + 3
+#define WM_TRAY_LDBLCLICK	WM_TRAY_FIRST + 4
 
 #define TASKBAR_MESSAGE_HANDLER(ti, msg, func) \
 	if(uMsg==ti.m_nid.uCallbackMessage && wParam==ti.m_nid.uID && lParam==msg) \
@@ -23,28 +25,36 @@ public:
 	~CTrayIcon(void);
 
 	BEGIN_MSG_MAP(CTrayIcon)
-		TASKBAR_MESSAGE_HANDLER((*this), WM_RBUTTONDOWN, OnContextMenu)
-		TASKBAR_MESSAGE_HANDLER((*this), WM_LBUTTONDBLCLK, OnDblClick)
-		TASKBAR_MESSAGE_HANDLER((*this), WM_LBUTTONDOWN, OnClick)
+		TASKBAR_MESSAGE_HANDLER((*this), WM_RBUTTONDOWN, OnMouseCommand)
+		TASKBAR_MESSAGE_HANDLER((*this), WM_RBUTTONDBLCLK, OnMouseCommand)
+		TASKBAR_MESSAGE_HANDLER((*this), WM_LBUTTONDBLCLK, OnMouseCommand)
+		TASKBAR_MESSAGE_HANDLER((*this), WM_LBUTTONDOWN, OnMouseCommand)
 	END_MSG_MAP()
 
 public:
 	BOOL Create(HWND hWnd, UINT iID, HICON hIcon, LPCTSTR lpszTooltip);
 	BOOL Destroy();
+	BOOL SetIcon(HICON hIcon);
+	BOOL SetTooltip(LPCTSTR lpszTooltip);
+
+	BOOL Hide();
+	BOOL Show();
+
+	BOOL IsVisible()
+	{
+		return m_bVisible;
+	}
 
 protected:
-	LRESULT OnContextMenu(LPARAM /*uMsg*/, BOOL& bHandled);
-	LRESULT OnDblClick(LPARAM /*uMsg*/, BOOL& bHandled);
-	LRESULT OnClick(LPARAM /*uMsg*/, BOOL& bHandled);
+	LRESULT OnMouseCommand(LPARAM /*uMsg*/, BOOL& bHandled);
 
 protected:
 	void Init();
 
-	BOOL AddIcon();
-
 protected:
+	BOOL			m_bVisible;
+
 	NOTIFYICONDATA	m_nid;
-	UINT			m_nTaskbarRestartMsg;
 
 	friend class CChromeTrayIcon;
 };

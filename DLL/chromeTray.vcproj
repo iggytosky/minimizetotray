@@ -212,7 +212,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\JSMethods.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\JSValue.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\MonitoringThread.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ScriptableNPObject.cpp"
 				>
 			</File>
 			<File
@@ -254,11 +266,23 @@
 				>
 			</File>
 			<File
+				RelativePath=".\JSMethods.h"
+				>
+			</File>
+			<File
+				RelativePath=".\JSValue.h"
+				>
+			</File>
+			<File
 				RelativePath=".\MonitoringThread.h"
 				>
 			</File>
 			<File
 				RelativePath=".\resource.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ScriptableNPObject.h"
 				>
 			</File>
 			<File
@@ -277,6 +301,10 @@
 				RelativePath=".\TrayIcon.h"
 				>
 			</File>
+			<File
+				RelativePath=".\types.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
@@ -292,6 +320,10 @@
 				>
 			</File>
 		</Filter>
+		<File
+			RelativePath=".\history.txt"
+			>
+		</File>
 		<File
 			RelativePath=".\ReadMe.txt"
 			>

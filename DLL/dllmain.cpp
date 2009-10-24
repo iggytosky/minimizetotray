@@ -1,14 +1,13 @@
 // dllmain.cpp : Defines the entry point for the DLL application.
 #include "stdafx.h"
 
-#include <plugin\npapi.h>
-#include <plugin\npfunctions.h>
-
 #include "stubs.h"
 
 #include "DebugLog.h"
 
 #include "ChromeTrayIcon.h"
+#include "ScriptableNPObject.h"
+#include "JSMethods.h"
 
 static NPNetscapeFuncs *g_BrowserFuncs	= NULL;
 static NPPluginFuncs *g_PluginFuncs		= NULL;
@@ -16,6 +15,8 @@ static NPPluginFuncs *g_PluginFuncs		= NULL;
 #pragma data_seg("Shared")
 HINSTANCE g_hInstance = NULL;
 #pragma data_seg()
+
+CChromeTrayIcon	g_ChromeTrayIcon;
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved)
 {
@@ -43,6 +44,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 
 	case DLL_PROCESS_DETACH:
 		{
+			g_ChromeTrayIcon.DestroyTrayIcon();
 		}
 		break;
 	}
@@ -58,21 +60,33 @@ NPError SetWindow(NPP instance, NPWindow *window)
 {
 	DebugLog(_T("SetWindow called, window handle: 0x%X"), (DWORD)window->window);
 
-	BOOL bResult;
+	return NPERR_NO_ERROR;
+}
 
-	HWND hWnd = (HWND)window->window;
-
-	if(hWnd == NULL)
+NPError GetValue(NPP instance, NPPVariable variable, void *value)
+{
+	switch (variable) 
 	{
-		bResult = g_ChromeTrayIcon.DestroyTrayIcon();
+	case NPPVpluginScriptableNPObject: 
+		{
+			NPObject *listener = (NPObject*)g_BrowserFuncs->createobject(instance, &CScriptableNPObject::m_npClass);
 
-		DebugLog(_T("DestroyTrayIcon returned: %d"), bResult);
-	}
-	else
-	{
-		bResult = g_ChromeTrayIcon.CreateTrayIcon(g_hInstance);
+			CJSMethods::RegisterMethods((CScriptableNPObject*)listener);
 
-		DebugLog(_T("CreateTrayIcon returned: %d"), bResult);
+			*((NPObject**)value) = listener;
+
+			if(g_ChromeTrayIcon.IsWindow() == FALSE)
+			{
+				g_ChromeTrayIcon.CreateTrayIcon(g_hInstance);				
+			}
+		}
+		break;
+
+	default: 
+		{
+			return NPERR_INVALID_PARAM;
+		}
+		break;
 	}
 
 	return NPERR_NO_ERROR;
@@ -93,19 +107,19 @@ NPError WINAPI NP_GetEntryPoints(NPPluginFuncs* pFuncs)
 
 	g_PluginFuncs = pFuncs;
 
-	pFuncs->newp = StubNewInstance;
-	pFuncs->destroy = StubDestroy;
-	pFuncs->setwindow = SetWindow;
-	pFuncs->newstream = StubNewStream;
-	pFuncs->destroystream = StubDestroyStream;
-	pFuncs->asfile = StubStreamAsFile;
-	pFuncs->writeready = StubWriteReady;
-	pFuncs->write = StubWrite;
-	pFuncs->print = StubPrint;
-	pFuncs->event = StubHandleEvent;
-	pFuncs->urlnotify = StubURLNotify;
-	pFuncs->getvalue = StubGetValue;
-	pFuncs->setvalue = StubSetValue;
+	pFuncs->newp			= StubNewInstance;
+	pFuncs->destroy			= StubDestroy;
+	pFuncs->setwindow		= SetWindow;
+	pFuncs->newstream		= StubNewStream;
+	pFuncs->destroystream	= StubDestroyStream;
+	pFuncs->asfile			= StubStreamAsFile;
+	pFuncs->writeready		= StubWriteReady;
+	pFuncs->write			= StubWrite;
+	pFuncs->print			= StubPrint;
+	pFuncs->event			= StubHandleEvent;
+	pFuncs->urlnotify		= StubURLNotify;
+	pFuncs->getvalue		= GetValue;
+	pFuncs->setvalue		= StubSetValue;
 
 	return NPERR_NO_ERROR;
 }
@@ -121,6 +135,7 @@ NPError WINAPI NP_Initialize(NPNetscapeFuncs *aNPNFuncs)
 
 	g_BrowserFuncs = aNPNFuncs;
 
+	CScriptableNPObject::m_pBrowserFuncs = g_BrowserFuncs;
 
 	return NPERR_NO_ERROR;
 }
@@ -128,6 +143,10 @@ NPError WINAPI NP_Initialize(NPNetscapeFuncs *aNPNFuncs)
 NPError WINAPI NP_Shutdown(void)
 {
 	DebugLog(_T("NP_Shutdown\n"));
+
+	BOOL bResult = g_ChromeTrayIcon.DestroyTrayIcon();
+
+	DebugLog(_T("DestroyTrayIcon returned: %d"), bResult);
 
 	return NPERR_NO_ERROR;
 }

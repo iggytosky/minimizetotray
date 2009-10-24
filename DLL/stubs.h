@@ -142,13 +142,7 @@ static bool StubConstruct(NPObject *npobj,
 	return false;
 }
 
-NPError StubNewInstance(NPMIMEType pluginType,
-					NPP instance,
-					WORD mode,
-					short argc,
-					char *argn[],
-					char *argv[],
-					NPSavedData *saved) 
+NPError StubNewInstance(NPMIMEType pluginType, NPP instance, WORD mode,	short argc,	char *argn[], char *argv[],	NPSavedData *saved)
 {
 	DebugLog(_T("StubNewInstance\n"));
 

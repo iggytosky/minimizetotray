@@ -14,6 +14,8 @@
 #include <time.h>
 #include <shlobj.h>
 
+#define _SECURE_ATL 1
+
 #include <atlbase.h>
 #include <atlapp.h>
 
@@ -32,5 +34,9 @@ extern CAppModule _Module;
 #include <algorithm>
 
 using namespace std;
+
+#include <plugin\npapi.h>
+#include <plugin\npfunctions.h>
+#include <js\jsapi.h>
 
 #include "DebugLog.h"

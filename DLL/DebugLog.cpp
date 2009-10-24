@@ -67,6 +67,7 @@ BOOL CDebugLog::Log(TCHAR *fmt, ...)
 		return FALSE;
 	}
 
+	OutputDebugString(szInBuffer);
 	WriteFile(m_hLogFile, pszOutBuffer, dwInBuffer, &dwBytesWritten, NULL);
 
 	delete [] pszOutBuffer;
@@ -83,7 +84,7 @@ BOOL CDebugLog::OpenLogFile()
 
 	wstring strFilePath = _T("c:\\temp\\debug.log");
 
-	m_hLogFile = ::CreateFile(strFilePath.c_str(), GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, 0, NULL);
+	m_hLogFile = ::CreateFile(strFilePath.c_str(), GENERIC_WRITE, FILE_SHARE_READ, NULL, TRUNCATE_EXISTING, 0, NULL);
 
 	return IsLogFileOpen();
 }
