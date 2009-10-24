@@ -57,12 +57,14 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// Icon
+// String Table
 //
 
-// Icon with lowest ID value placed first to ensure application icon
-// remains consistent on all systems.
-IDI_CHROME              ICON                    "chrome.ico"
+STRINGTABLE 
+BEGIN
+    IDS_OPTIONS             "Options"
+END
+
 #endif    // Neutral resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -108,8 +110,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,1
- PRODUCTVERSION 1,0,0,1
+ FILEVERSION 1,0,1,24
+ PRODUCTVERSION 1,0,1,24
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -122,21 +124,21 @@ VS_VERSION_INFO VERSIONINFO
 BEGIN
     BLOCK "StringFileInfo"
     BEGIN
-        BLOCK "041904b0"
+        BLOCK "000004b0"
         BEGIN
-            VALUE "FileDescription", "chromeTr Dynamic Link Library"
-            VALUE "FileVersion", "1, 0, 0, 1"
+            VALUE "FileDescription", "chromeTray Dynamic Link Library"
+            VALUE "FileVersion", "1, 0, 1, 24"
             VALUE "InternalName", "chromeTray"
             VALUE "LegalCopyright", "Copyright (C) 2009"
             VALUE "MIMEType", "application/minimize-to-tray-extension"
-            VALUE "OriginalFilename", "npchromeTray.dll"
+            VALUE "OriginalFilename", "chromeTray.dll"
             VALUE "ProductName", "chromeTray Dynamic Link Library"
-            VALUE "ProductVersion", "1, 0, 0, 1"
+            VALUE "ProductVersion", "1, 0, 1, 24"
         END
     END
     BLOCK "VarFileInfo"
     BEGIN
-        VALUE "Translation", 0x419, 1200
+        VALUE "Translation", 0x0, 1200
     END
 END
 

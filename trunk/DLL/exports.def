@@ -1,4 +1,4 @@
-LIBRARY	"npchromeTray"
+LIBRARY	"chromeTray"
 EXPORTS
           NP_GetEntryPoints 
           NP_Initialize
