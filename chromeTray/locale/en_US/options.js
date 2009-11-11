@@ -16,6 +16,8 @@ lang_en_US =
 	lngContextMenu: "Context Menu",	
 	lngNewWindow: "Display 'New Window'",
 	lngNewTab: "Display 'New Tab'",
+	lngOptions: "Display 'Options'",
+	lngFavorites: "Display 'Favorites'",
 		
 	lngSave: "Save",
 	lngExit: "Exit",
@@ -24,7 +26,11 @@ lang_en_US =
 	lngShowContextMenu : "Show context menu",
 	lngRestoreAllWindows: "Restore all minimized windows",
 	lngCreateNewTab: "Create a new Tab",
-	lngCreateNewWindow: "Create a new Window"
+	lngCreateNewWindow: "Create a new Window",
+		
+	lngBossKey: "Boss key",
+	lngEnableBossKey: "Hide all visible Chrome windows",
+	lngBossHideTrayIcon: "Hide tray icon"
 }
 
 function RegisterLang()

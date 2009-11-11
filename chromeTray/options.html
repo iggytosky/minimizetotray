@@ -48,9 +48,33 @@
 		<br/>
 		<div class="menu">
 			<label><span id="lngContextMenu">Context Menu</span></label>
-			<label class="ctrl"><input type="checkbox" id="displayNewWindow"/><span id="lngNewWindow">Display 'New Window'</span></label>
 			<label class="ctrl"><input type="checkbox" id="displayNewTab"/><span id="lngNewTab">Display 'New Tab'</span></label>
+			<label class="ctrl"><input type="checkbox" id="displayNewWindow"/><span id="lngNewWindow">Display 'New Window'</span></label>
+			<label class="ctrl"><input type="checkbox" id="displayOptions"/><span id="lngOptions">Display 'Options'</span></label>
+			<label class="ctrl"><input type="checkbox" id="displayFavorites"/><span id="lngFavorites">Display 'Favorites'</span></label>
+			<textarea type="text" cols="40" rows="6" id="favorites"></textarea>
 		</div>
+		<br/>
+		<div class="menu">
+			<label><span id="lngBossKey">Boss key</span></label>
+			<label class="ctrl"><input type="checkbox" id="enableBossKey"/><span id="lngEnableBossKey">Enable</span></label>
+			<select id="bossMod1">
+				<option value="none">-</option>
+				<option value="Shift">Shift</option>
+				<option value="Ctrl">Ctrl</option>
+				<option value="Alt">Alt</option>
+			</select>
+			&nbsp;<b>+</b>&nbsp;
+			<select id="bossMod2">
+				<option value="Shift">Shift</option>
+				<option value="Ctrl">Ctrl</option>
+				<option value="Alt">Alt</option>
+			</select>
+			&nbsp;<b>+</b>&nbsp;
+			<input type="text" id="bossKey" maxlength="1" style="width: 32px;"/>
+			<label class="ctrl"><input type="checkbox" id="bossHideTrayIcon"/><span id="lngBossHideTrayIcon">Hide tray icon</span></label>
+		</div>
+		<br/>
 		<br/>
 		<div class="menu">
 			<div class="buttons">

@@ -16,7 +16,9 @@ lang_ru_RU =
 	lngContextMenu: "Контекстное меню",	
 	lngNewWindow: "Пункт 'Новое окно'",
 	lngNewTab: "Пункт 'Новая закладка'",
-		
+	lngOptions: "Пункт 'Настроить'",
+	lngFavorites: "Пункт 'Избранное'",
+
 	lngSave: "Сохранить",
 	lngExit: "Выход",
 		
@@ -24,7 +26,11 @@ lang_ru_RU =
 	lngShowContextMenu : "Контекстное меню",
 	lngRestoreAllWindows: "Восстановить все скрытые окна",
 	lngCreateNewTab: "Создать новую закладку",
-	lngCreateNewWindow: "Создать новое окно"
+	lngCreateNewWindow: "Создать новое окно",
+		
+	lngBossKey: "Boss key",
+	lngEnableBossKey: "Прятать все видимые окна Chrome при нажатии",
+	lngBossHideTrayIcon: "Прятать иконку"
 }
 
 function RegisterLang()
