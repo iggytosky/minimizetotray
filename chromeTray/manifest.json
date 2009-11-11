@@ -5,6 +5,6 @@
   "background_page": "background.html",
   "plugins": [{"path": "chromeTray.dll"}],
   "permissions": ["tabs"],
-  "options_page": "options.html"
+  "options_page": "options.html",
   "update_url": "http://minimizetotray.googlecode.com/files/updates.xml"
 }
