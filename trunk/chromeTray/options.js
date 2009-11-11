@@ -106,6 +106,18 @@ function setCheckState(ctrlId, checked)
 	document.getElementById(ctrlId).checked = (checked == "true");
 }
 
+function getValue(ctrlId)
+{
+	var ctrl = document.getElementById(ctrlId);
+	return ctrl.value;
+}
+
+function setValue(ctrlId, value)
+{
+	var ctrl = document.getElementById(ctrlId);
+	ctrl.value = value;
+}
+
 function readProperty(property, defValue)
 {
 	if(localStorage == null)
@@ -135,6 +147,15 @@ function doDataExchange(save)
 		
 		localStorage["displayNewWindow"] = getCheckState("displayNewWindow");
 		localStorage["displayNewTab"] = getCheckState("displayNewTab");
+		localStorage["displayOptions"] = getCheckState("displayOptions");
+		localStorage["displayFavorites"] = getCheckState("displayFavorites");
+		localStorage["favorites"] = getValue("favorites");
+		
+		localStorage["enableBossKey"] = getCheckState("enableBossKey");
+		localStorage["bossMod1"] = getSelectedValue("bossMod1");
+		localStorage["bossMod2"] = getSelectedValue("bossMod2");
+		localStorage["bossKey"] = getValue("bossKey");
+		localStorage["bossHideTrayIcon"] = getCheckState("bossHideTrayIcon");
 	}
 	else
 	{
@@ -148,6 +169,15 @@ function doDataExchange(save)
 		
 		setCheckState("displayNewWindow", readProperty("displayNewWindow", "false"));
 		setCheckState("displayNewTab", readProperty("displayNewTab", "false"));
+		setCheckState("displayOptions", readProperty("displayOptions", "true"));
+		setCheckState("displayFavorites", readProperty("displayFavorites", "false"));
+		setValue("favorites", readProperty("favorites", ""));
+		
+		setCheckState("enableBossKey", readProperty("enableBossKey", "false"));
+		setSelectedValue("bossMod1", readProperty("bossMod1", "Ctrl"));
+		setSelectedValue("bossMod2", readProperty("bossMod2", "Shift"));
+		setValue("bossKey", readProperty("bossKey", ""));
+		setCheckState("bossHideTrayIcon", readProperty("bossHideTrayIcon", "false"));
 	}
 }
 

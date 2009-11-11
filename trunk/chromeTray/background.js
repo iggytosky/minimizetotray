@@ -30,6 +30,12 @@ function setIcon(path)
 	plugin.SetIcon(path);
 }
 
+function popupNotify(title, text)
+{
+	var plugin = document.getElementById("minimize-to-tray-extension");
+	plugin.PopupNotify(title, text);
+}
+
 function initPlugin()
 {
 	chrome.windows.getCurrent(function(wnd) {
@@ -48,7 +54,7 @@ function getLanguage()
 function getWindowTabs(windowId)
 {
 	var tabsInfo = [];
-
+	
 	chrome.tabs.getAllInWindow(windowId, function enumTabs(tabs) {
 		if(tabs != undefined && !(tabs.length == 1 && tabs[0].title == undefined))
 		{
@@ -74,6 +80,11 @@ function selectWindowTab(tabId)
 function showOptions()
 {
 	chrome.tabs.create({url:'options.html'});
+}
+
+function openUrl(url)
+{
+	chrome.tabs.create({selected: true, url: url});
 }
 
 function newTab()
@@ -111,10 +122,21 @@ function getOptions()
 		actLDblClick: readProperty("actLDblClick", "2"),
 		actRClick: readProperty("actRClick", "1"),
 		
-		displayNewWindow: readProperty("displayNewWindow"),
-		displayNewTab: readProperty("displayNewTab")
+		displayNewWindow: readProperty("displayNewWindow", "false"),
+		displayNewTab: readProperty("displayNewTab", "false"),
+		displayOptions: readProperty("displayOptions", "true"),
+		displayFavorites: readProperty("displayFavorites", "false"),
+		favorites: readProperty("favorites", ""),
+			
+		enableBossKey: readProperty("enableBossKey", "false"),
+		bossMod1: readProperty("bossMod1", "0"),
+		bossMod2: readProperty("bossMod2", "0"),
+		bossKey: readProperty("bossKey", "0"),
+		bossHideTrayIcon: readProperty("bossHideTrayIcon", "false"),
 	};
 }
+
+/////////////////////////////////////////////////////////////////////////////////
 
 chrome.windows.onFocusChanged.addListener(function(windowId) {
 	notifyFocusChanged(windowId);
@@ -143,10 +165,9 @@ chrome.extension.onConnect.addListener(function(port) {
 	}
 });
 
-//if(chrome.extension.onConnectExternal != null)
+if(chrome.extension.onConnectExternal != null)
 {
 	chrome.extension.onConnectExternal.addListener(function(port) {
-		console.log("port.name=" + port.name);
 		if(port.name == 'minimize-to-tray')
 		{
 			port.onMessage.addListener(function(data) {
@@ -155,6 +176,10 @@ chrome.extension.onConnect.addListener(function(port) {
 				{
 					case 'SetIcon':
 						setIcon(data.param);
+						break;
+						
+					case 'PopupNotify':
+						popupNotify(data.title, data.text);
 						break;
 				}
 			});
