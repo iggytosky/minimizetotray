@@ -12,9 +12,9 @@ CTrayIcon::~CTrayIcon(void)
 
 BOOL CTrayIcon::Create(HWND hWnd, UINT iID, HICON hIcon, LPCTSTR lpszTooltip)
 {
-	::ZeroMemory(&m_nid, sizeof(m_nid));
+	::ZeroMemory(&m_nid, sizeof(NOTIFYICONDATA));
 
-	m_nid.cbSize			= sizeof(m_nid); 
+	m_nid.cbSize			= sizeof(NOTIFYICONDATA); 
 	m_nid.uCallbackMessage	= ::RegisterWindowMessage(TEXT("TaskbarNotifyMsg"));
 
 	m_nid.hWnd				= hWnd;
@@ -22,19 +22,18 @@ BOOL CTrayIcon::Create(HWND hWnd, UINT iID, HICON hIcon, LPCTSTR lpszTooltip)
 	m_nid.uFlags			= NIF_MESSAGE | NIF_ICON | NIF_TIP;
 	m_nid.hIcon				= hIcon;
 
-	size_t nTipLen	= (_countof(m_nid.szTip) > wcslen(lpszTooltip)) ? wcslen(lpszTooltip) : _countof(m_nid.szTip);
-	wcsncpy_s(m_nid.szTip, lpszTooltip, nTipLen);
+	wcsncpy_s(m_nid.szTip, lpszTooltip, MaxTextLengthToCopy(wcslen(lpszTooltip), _countof(m_nid.szTip) - 1));
 
-	return Show();
+	return ShowIcon();
 }
 
 BOOL CTrayIcon::Destroy()
 {
 	BOOL bResult = FALSE;
 
-	if(IsVisible())
+	if(IsIconVisible())
 	{
-		Hide(); 
+		HideIcon(); 
 	}
 	
 	m_nid.hWnd	= NULL;
@@ -47,8 +46,8 @@ BOOL CTrayIcon::SetIcon(HICON hIcon)
 {
 	BOOL bResult	= FALSE;
 
-	m_nid.uFlags	= NIF_ICON; 
 	m_nid.hIcon		= hIcon;
+	m_nid.uFlags	= NIF_ICON;
 	bResult			= ::Shell_NotifyIcon(NIM_MODIFY, &m_nid); 
 
 	return bResult;
@@ -58,25 +57,21 @@ BOOL CTrayIcon::SetTooltip(LPCTSTR lpszTooltip)
 {
 	BOOL bResult	= FALSE;
 
-	m_nid.uFlags	= NIF_TIP; 
+	m_nid.uFlags	= NIF_TIP;
 
-	size_t nTipLen	= (_countof(m_nid.szTip) > wcslen(lpszTooltip)) ? wcslen(lpszTooltip) : _countof(m_nid.szTip);
-	wcsncpy_s(m_nid.szTip, lpszTooltip, nTipLen);
+	wcsncpy_s(m_nid.szTip, lpszTooltip, MaxTextLengthToCopy(wcslen(lpszTooltip), _countof(m_nid.szTip) - 1));
 
 	bResult			= ::Shell_NotifyIcon(NIM_MODIFY, &m_nid); 
 
 	return bResult;
 }
 
-BOOL CTrayIcon::Hide()
+BOOL CTrayIcon::HideIcon()
 {
-	if(IsVisible() == FALSE)
+	if(IsIconVisible() == FALSE)
 	{
 		return FALSE;
 	}
-
-	NOTIFYICONDATA nid	= m_nid;
-	nid.uFlags			= NIF_MESSAGE;
 
 	if(Shell_NotifyIcon(NIM_DELETE, &m_nid))
 	{
@@ -87,9 +82,9 @@ BOOL CTrayIcon::Hide()
 	return FALSE;
 }
 
-BOOL CTrayIcon::Show()
+BOOL CTrayIcon::ShowIcon()
 {
-	if(IsVisible())
+	if(IsIconVisible())
 	{
 		return TRUE;
 	}
@@ -105,6 +100,21 @@ BOOL CTrayIcon::Show()
 	return FALSE;
 }
 
+BOOL CTrayIcon::ShowBaloon(LPCTSTR lpszTitle, LPCTSTR lpszText)
+{	
+	wcsncpy_s(m_nid.szInfoTitle, lpszTitle, MaxTextLengthToCopy(wcslen(lpszTitle), _countof(m_nid.szInfoTitle) - 1));
+	wcsncpy_s(m_nid.szInfo, lpszText, MaxTextLengthToCopy(wcslen(lpszText), _countof(m_nid.szInfo) - 1));
+
+	m_nid.uFlags			= NIF_INFO;
+	m_nid.uTimeout			= 10 * 1000;
+	m_nid.dwInfoFlags		= NIIF_INFO;
+
+	BOOL bResult = Shell_NotifyIcon(NIM_MODIFY, &m_nid);
+
+	m_nid.szInfo[0] = _T('\0');
+
+	return bResult;
+}
 //////////////////////////////////////////////////////////////////////////
 //
 //////////////////////////////////////////////////////////////////////////

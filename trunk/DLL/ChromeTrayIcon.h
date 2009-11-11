@@ -5,6 +5,7 @@
 #include "types.h"
 
 #include "TrayIcon.h"
+#include "TrayPopup.h"
 #include "MonitoringThread.h"
 
 #define TRAY_MENU_COMMAND		10000
@@ -12,6 +13,7 @@
 
 #define TRAY_NEW_TAB_COMMAND	9998
 #define TRAY_NEW_WND_COMMAND	9997
+#define TRAY_FAVORITES_COMMAND	9000
 
 class CChromeTrayIcon : public CDialogImpl<CChromeTrayIcon>, 
 						public CMonitoringThread
@@ -34,9 +36,12 @@ public:
 		MESSAGE_HANDLER(WM_TRAY_RCLICK, OnTrayMouseCommand)
 		MESSAGE_HANDLER(WM_TRAY_RDBLCLICK, OnTrayMouseCommand)
 
+		MESSAGE_HANDLER(WM_HOTKEY, OnHotKey)
+
 		COMMAND_ID_HANDLER(TRAY_OPTIONS_COMMAND, OnOptions)
 		COMMAND_ID_HANDLER(TRAY_NEW_TAB_COMMAND, OnNewTab)
 		COMMAND_ID_HANDLER(TRAY_NEW_WND_COMMAND, OnNewWnd)
+		COMMAND_RANGE_HANDLER(TRAY_FAVORITES_COMMAND, TRAY_FAVORITES_COMMAND + 50, OnFavorites)
 
 		CHAIN_MSG_MAP_MEMBER(m_TrayIcon)
 		REFLECT_NOTIFICATIONS()
@@ -45,7 +50,9 @@ public:
 public:
 	BOOL CreateTrayIcon(HINSTANCE hInstance);
 	BOOL DestroyTrayIcon();
+	
 	BOOL SetTrayIcon(LPCTSTR lpszIconPath);
+	BOOL PopupNotify(LPCTSTR lpszTitle, LPCTSTR lpszText);
 
 	void HideChromeWindow(HWND hWnd);
 	void ShowChromeWindow(HWND hWnd);
@@ -59,9 +66,12 @@ public:
 protected:
 	LRESULT OnTrayMouseCommand(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 
+	LRESULT OnHotKey(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+
 	LRESULT OnOptions(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT OnNewTab(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT OnNewWnd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT OnFavorites(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 
 	void RestoreAllChromeWindows();
 	void ShowContextMenu();
@@ -75,15 +85,24 @@ protected:
 
 	HWND FindVisibleChromeWindow();
 
+	BOOL RegisterHotKeys();
+	void UnregisterHotKeys();
+
 protected:
+	ATOM					m_HotKeyId;
+	BOOL					m_bChromeIsHidded;
+
 	CMenu					m_TrayMenu;
 
 	vector<ChromeWindow>	m_ChromeWindows;
 
 	HICON					m_hIcon;
 
+	CTrayPopup				m_TrayPopup;
 	CTrayIcon				m_TrayIcon;
 	UINT					m_uTrayRestart;
+
+	map<DWORD, wstring>		m_Favorites;
 
 	ChromeTrayIconOptions	m_options;
 	ChromeTrayIconLanguage	m_language;

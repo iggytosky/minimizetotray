@@ -7,6 +7,8 @@
 
 #include "ChromeTrayIcon.h"
 
+#include "utils.h"
+
 CScriptableNPObject* CJSMethods::m_pScriptableObject = NULL;
 
 CJSMethods::CJSMethods(void)
@@ -27,6 +29,7 @@ void CJSMethods::RegisterMethods(CScriptableNPObject *pObject)
 	pObject->RegisterMethod("OnOptionsChanged", OnOptionsChanged);
 
 	pObject->RegisterMethod("SetIcon", SetIcon);
+	pObject->RegisterMethod("PopupNotify", PopupNotify);
 }
 
 bool CJSMethods::OnFocusChanged(NPNetscapeFuncs *pBrowserFuncs, NPP pluginInstance, const uint32_t argCount, const NPVariant *args)
@@ -77,8 +80,6 @@ bool CJSMethods::OnOptionsChanged(NPNetscapeFuncs *pBrowserFuncs, NPP pluginInst
 
 bool CJSMethods::SetIcon(NPNetscapeFuncs *pBrowserFuncs, NPP pluginInstance, const uint32_t argCount, const NPVariant *args)
 {
-	DebugLog(_T("CJSMethods::SetIcon"));
-
 	if(argCount == 0)
 	{
 		return (g_ChromeTrayIcon.SetTrayIcon(NULL) ? true : false);
@@ -104,6 +105,53 @@ bool CJSMethods::SetIcon(NPNetscapeFuncs *pBrowserFuncs, NPP pluginInstance, con
 	delete [] lpszIconPath;
 
 	return bResult;
+}
+
+bool CJSMethods::PopupNotify(NPNetscapeFuncs *pBrowserFuncs, NPP pluginInstance, const uint32_t argCount, const NPVariant *args)
+{
+	if(argCount != 2)
+	{
+		return false;
+	}
+
+	int nConverted;
+
+	wstring strTitle;
+	wstring strText;
+
+	int nTitleLength = args[0].value.stringValue.utf8length;
+
+	if(nTitleLength != 0)
+	{
+		TCHAR *lpszTitle = new TCHAR[nTitleLength + 1];
+
+		nConverted = MultiByteToWideChar(CP_UTF8, 0, args[0].value.stringValue.utf8characters, nTitleLength, lpszTitle, nTitleLength + 1);
+
+		lpszTitle[nConverted] = '\0';
+
+		strTitle = lpszTitle;
+
+		delete [] lpszTitle;
+	}
+
+	int nTextLength = args[1].value.stringValue.utf8length;
+
+	if(nTextLength != 0)
+	{
+		TCHAR *lpszText = new TCHAR[nTextLength + 1];
+
+		nConverted = MultiByteToWideChar(CP_UTF8, 0, args[1].value.stringValue.utf8characters, nTextLength, lpszText, nTextLength + 1);
+
+		lpszText[nConverted] = '\0';
+
+		strText = lpszText;
+
+		delete [] lpszText;
+	}
+
+	g_ChromeTrayIcon.PopupNotify(strTitle.c_str(), strText.c_str());
+
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -296,8 +344,6 @@ bool CJSMethods::NewTab()
 
 	bool bResult = CallJSMethod(pBrowserFuncs, pluginInstance, "newTab", &varArgs, 0, varResults);
 
-	DebugLog(_T("NewTab = %d"), bResult);
-
 	pBrowserFuncs->releasevariantvalue(&varArgs);
 	pBrowserFuncs->releasevariantvalue(&varResults);
 
@@ -330,10 +376,45 @@ bool CJSMethods::NewWindow()
 	return bResult;
 }
 
+bool CJSMethods::OpenUrl(wstring strUrl)
+{
+	if(m_pScriptableObject == NULL)
+	{
+		return false;
+	}
+
+	NPP pluginInstance				= m_pScriptableObject->GetPluginInstance();
+	NPNetscapeFuncs *pBrowserFuncs	= m_pScriptableObject->GetBrowserFuncs();
+
+	if(pluginInstance == NULL || pBrowserFuncs == NULL)
+	{
+		return false;
+	}
+
+	NPVariant varResults;
+
+	char *pszUrl = new char[strUrl.size() + 4];
+	int nConverted = WideCharToMultiByte(CP_ACP, 0, strUrl.c_str(), strUrl.size(), pszUrl, strUrl.size() + 1, NULL, NULL);
+	pszUrl[nConverted] = '\0';
+	
+	NPVariant varArgs;
+	STRINGN_TO_NPVARIANT(pszUrl, strlen(pszUrl), varArgs);
+
+	bool bResult = CallJSMethod(pBrowserFuncs, pluginInstance, "openUrl", &varArgs, 1, varResults);
+
+	// Dll will be crashed if you uncomment next line.
+	// I don't know why, yet.
+	//pBrowserFuncs->releasevariantvalue(&varArgs);
+
+	pBrowserFuncs->releasevariantvalue(&varResults);
+
+	delete [] pszUrl;
+
+	return bResult;
+}
+
 bool CJSMethods::GetOptions(ChromeTrayIconOptions &options)
 {
-	DebugLog(_T("CJSMethods::GetOptions"));
-
 	if(m_pScriptableObject == NULL)
 	{
 		return false;
@@ -351,8 +432,6 @@ bool CJSMethods::GetOptions(ChromeTrayIconOptions &options)
 	NPVariant varArgs;
 
 	bool bResult = CallJSMethod(pBrowserFuncs, pluginInstance, "getOptions", &varArgs, 0, varResults);
-
-	DebugLog(_T("CJSMethods::GetOptions result = %d, type = %d"), bResult, varResults.type);
 
 	if(bResult)
 	{
@@ -384,6 +463,11 @@ bool CJSMethods::GetOptions(ChromeTrayIconOptions &options)
 					options.actLDblClick = (TrayAction)_wtoi(strValue.c_str());
 				}
 
+				if(CJSValue::GetProperty(pBrowserFuncs, pluginInstance, pArray, "displayOptions", strValue))
+				{
+					options.bShowOptions = (strValue == _T("true"));
+				}
+
 				if(CJSValue::GetProperty(pBrowserFuncs, pluginInstance, pArray, "displayNewWindow", strValue))
 				{
 					options.bShowNewWindow = (strValue == _T("true"));
@@ -392,6 +476,48 @@ bool CJSMethods::GetOptions(ChromeTrayIconOptions &options)
 				if(CJSValue::GetProperty(pBrowserFuncs, pluginInstance, pArray, "displayNewTab", strValue))
 				{
 					options.bShowNewTab = (strValue == _T("true"));
+				}
+
+				if(CJSValue::GetProperty(pBrowserFuncs, pluginInstance, pArray, "displayFavorites", strValue))
+				{
+					options.bShowFavorites = (strValue == _T("true"));
+				}
+
+				if(CJSValue::GetProperty(pBrowserFuncs, pluginInstance, pArray, "favorites", strValue))
+				{
+					options.strFavorites = strValue;
+				}
+
+				//////////////////////////////////////////////////////////////////////////
+				// Boss key
+				//////////////////////////////////////////////////////////////////////////
+
+				if(CJSValue::GetProperty(pBrowserFuncs, pluginInstance, pArray, "enableBossKey", strValue))
+				{
+					options.bEnableBossKey = (strValue == _T("true"));
+				}
+
+				if(CJSValue::GetProperty(pBrowserFuncs, pluginInstance, pArray, "bossMod1", strValue))
+				{
+					options.wBossModifier = StringToKey(strValue.c_str());
+				}
+
+				if(CJSValue::GetProperty(pBrowserFuncs, pluginInstance, pArray, "bossMod2", strValue))
+				{
+					options.wBossModifier |= StringToKey(strValue.c_str());
+				}
+
+				if(CJSValue::GetProperty(pBrowserFuncs, pluginInstance, pArray, "bossKey", strValue))
+				{
+					if(strValue.empty() == FALSE)
+					{
+						options.wBossKey = (WORD)strValue[0];
+					}
+				}
+
+				if(CJSValue::GetProperty(pBrowserFuncs, pluginInstance, pArray, "bossHideTrayIcon", strValue))
+				{
+					options.bBossHideTrayIcon = (strValue == _T("true"));
 				}
 			}
 		}
@@ -446,6 +572,11 @@ bool CJSMethods::GetLanguage(ChromeTrayIconLanguage &language)
 				if(CJSValue::GetProperty(pBrowserFuncs, pluginInstance, pArray, "lngNewWindow", strValue))
 				{
 					language.strNewWindow = strValue;
+				}
+
+				if(CJSValue::GetProperty(pBrowserFuncs, pluginInstance, pArray, "lngFavorites", strValue))
+				{
+					language.strFavorites = strValue;
 				}
 			}
 		}

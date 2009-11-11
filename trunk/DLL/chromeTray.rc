@@ -110,8 +110,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,1,24
- PRODUCTVERSION 1,0,1,24
+ FILEVERSION 1,1,2,40
+ PRODUCTVERSION 1,1,2,40
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -127,13 +127,13 @@ BEGIN
         BLOCK "000004b0"
         BEGIN
             VALUE "FileDescription", "chromeTray Dynamic Link Library"
-            VALUE "FileVersion", "1, 0, 1, 24"
+            VALUE "FileVersion", "1, 1, 2, 40"
             VALUE "InternalName", "chromeTray"
             VALUE "LegalCopyright", "Copyright (C) 2009"
             VALUE "MIMEType", "application/minimize-to-tray-extension"
             VALUE "OriginalFilename", "chromeTray.dll"
             VALUE "ProductName", "chromeTray Dynamic Link Library"
-            VALUE "ProductVersion", "1, 0, 1, 24"
+            VALUE "ProductVersion", "1, 1, 2, 40"
         END
     END
     BLOCK "VarFileInfo"
