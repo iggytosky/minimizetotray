@@ -3,8 +3,7 @@
 
 #include "JSMethods.h"
 
-#include <psapi.h>
-#include <tlhelp32.h>
+#include "utils.h"
 
 static const TCHAR *ChromeWindowClass	= _T("Chrome_WindowImpl_0");
 static const TCHAR *ChromeWidgetClass	= _T("Chrome_WidgetWin_0");
@@ -12,7 +11,9 @@ static LPCTSTR ChromeWindowClasses[]	= {ChromeWidgetClass, ChromeWindowClass};
 
 static const int ContexMenuItemTextMax	= 48;
 
-CChromeTrayIcon::CChromeTrayIcon(void) : m_hIcon(NULL)
+CChromeTrayIcon::CChromeTrayIcon(void) : 
+		m_hIcon(NULL), m_HotKeyId(0),
+		m_bChromeIsHidded(FALSE)
 {
 }
 
@@ -26,8 +27,6 @@ CChromeTrayIcon::~CChromeTrayIcon(void)
 
 BOOL CChromeTrayIcon::CreateTrayIcon(HINSTANCE hInstance)
 {
-	OptionsChanged();
-
 	if(Create(NULL) == NULL)
 	{
 		return FALSE;
@@ -35,9 +34,17 @@ BOOL CChromeTrayIcon::CreateTrayIcon(HINSTANCE hInstance)
 
 	ShowWindow(SW_HIDE);
 
+	OptionsChanged();
+
 	ReCreateTrayIcon();
 
 	m_uTrayRestart = RegisterWindowMessage(TEXT("TaskbarCreated"));;
+
+	m_TrayPopup.Create();
+
+	HICON hIcon = GetChromeWindowIcon();
+
+	m_TrayPopup.SetIcon(hIcon);
 
 	RunMonitoring();
 
@@ -55,6 +62,8 @@ BOOL CChromeTrayIcon::ReCreateTrayIcon()
 
 BOOL CChromeTrayIcon::DestroyTrayIcon()
 {
+	UnregisterHotKeys();
+
 	for(size_t i = 0; i < m_ChromeWindows.size(); ++i)
 	{
 		if(::IsWindow(m_ChromeWindows[i].hWnd) == FALSE)
@@ -72,6 +81,8 @@ BOOL CChromeTrayIcon::DestroyTrayIcon()
 
 	m_TrayIcon.Destroy();
 
+	m_TrayPopup.DestroyWindow();
+
 	if(m_hIcon != NULL)
 	{
 		DestroyIcon(m_hIcon);
@@ -85,33 +96,34 @@ BOOL CChromeTrayIcon::SetTrayIcon(LPCTSTR lpszIconPath)
 {	
 	BOOL bResult	= FALSE;
 
-	HICON hIcon		= NULL;
+	if(m_hIcon != NULL)
+	{
+		DestroyIcon(m_hIcon);
+	}
 
 	if(lpszIconPath == NULL || lpszIconPath[0] == '\0')
 	{
-		hIcon = GetChromeWindowIcon();
+		m_hIcon = GetChromeWindowIcon();
 	}
 	else
 	{
-		hIcon = (HICON)LoadImage(NULL, lpszIconPath, IMAGE_ICON, 16, 16, LR_LOADFROMFILE);
+		m_hIcon = (HICON)LoadImage(NULL, lpszIconPath, IMAGE_ICON, 16, 16, LR_LOADFROMFILE);
 
-		if(hIcon == NULL)
+		if(m_hIcon == NULL)
 		{
-			DebugLog(_T("LoadImage failed!, path: %s gle: %lu"), lpszIconPath, GetLastError());
-
-			return FALSE;
-		}
-
-		if(m_hIcon != NULL)
-		{
-			DestroyIcon(m_hIcon);
-			m_hIcon = hIcon;
+			m_hIcon = GetChromeWindowIcon();
 		}
 	}
 
-	return m_TrayIcon.SetIcon(hIcon);
+	return m_TrayIcon.SetIcon(m_hIcon);
 }
 
+BOOL CChromeTrayIcon::PopupNotify(LPCTSTR lpszTitle, LPCTSTR lpszText)
+{
+	m_TrayPopup.PopupWindow(lpszTitle, lpszText);
+
+	return TRUE;
+}
 //////////////////////////////////////////////////////////////////////////
 //
 //////////////////////////////////////////////////////////////////////////
@@ -184,6 +196,39 @@ LRESULT CChromeTrayIcon::OnTrayMouseCommand(UINT uMsg, WPARAM /*wParam*/, LPARAM
 	return 0;
 }
 
+LRESULT CChromeTrayIcon::OnHotKey(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{
+	if(m_bChromeIsHidded)
+	{
+		m_bChromeIsHidded = FALSE;
+
+		m_TrayIcon.ShowIcon();
+	}
+	else
+	{
+		m_bChromeIsHidded = TRUE;
+
+		HWND hWnd;
+
+		for(size_t i = 0; i < m_ChromeWindows.size(); ++i)
+		{
+			hWnd = m_ChromeWindows[i].hWnd;
+
+			if(::IsWindowVisible(hWnd))
+			{
+				HideChromeWindow(hWnd);
+			}
+		}
+
+		if(m_options.bBossHideTrayIcon)
+		{
+			m_TrayIcon.HideIcon();
+		}
+	}
+
+	return 0;
+}
+
 LRESULT CChromeTrayIcon::OnOptions(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	HWND hChromeWindow = FindVisibleChromeWindow();
@@ -231,6 +276,35 @@ LRESULT CChromeTrayIcon::OnNewTab(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl
 LRESULT CChromeTrayIcon::OnNewWnd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	CJSMethods::NewWindow();
+
+	return 0;
+}
+
+LRESULT CChromeTrayIcon::OnFavorites(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+	map<DWORD, wstring>::iterator it = m_Favorites.find(wID);
+
+	if(it == m_Favorites.end())
+	{
+		return 0;
+	}
+
+	HWND hChromeWindow = FindVisibleChromeWindow();
+
+	if(hChromeWindow == NULL)
+	{
+		if(m_ChromeWindows.size() != 0)
+		{
+			hChromeWindow = FindVisibleChromeWindow();
+		}
+	}
+
+	if(hChromeWindow != NULL)
+	{
+		ShowChromeWindow(hChromeWindow);
+	}
+
+	CJSMethods::OpenUrl((*it).second);
 
 	return 0;
 }
@@ -326,6 +400,8 @@ void CChromeTrayIcon::AddChromeWindow(int nWindowId)
 
 	ChromeWindow chromeWnd = {nWindowId, hChromeWindow};
 	m_ChromeWindows.push_back(chromeWnd);
+
+	m_TrayIcon.ShowBaloon(_T("Test"), _T("Test"));
 }
 
 void CChromeTrayIcon::RemoveChromeWindow(int nWindowId)
@@ -353,10 +429,17 @@ BOOL CChromeTrayIcon::OptionsChanged()
 
 	if(m_options.bHideTray == FALSE)
 	{
-		if(m_TrayIcon.IsVisible() == FALSE)
+		if(m_TrayIcon.IsIconVisible() == FALSE)
 		{
-			m_TrayIcon.Show();
+			m_TrayIcon.ShowIcon();
 		}
+	}
+
+	UnregisterHotKeys();
+
+	if(m_options.bEnableBossKey)
+	{
+		RegisterHotKeys();
 	}
 
 	return TRUE;
@@ -390,7 +473,7 @@ BOOL CChromeTrayIcon::Worker()
 {
 	EnumWindows(EnumWindowsProc, (LPARAM)this);
 
-	if(m_options.bHideTray)
+	if(m_options.bHideTray && m_bChromeIsHidded == FALSE)
 	{
 		size_t nHiddenWindows = 0;
 
@@ -402,13 +485,13 @@ BOOL CChromeTrayIcon::Worker()
 			}
 		}
 
-		if(nHiddenWindows == 0 && m_TrayIcon.IsVisible())
+		if(nHiddenWindows == 0 && m_TrayIcon.IsIconVisible())
 		{
-			m_TrayIcon.Hide();
+			m_TrayIcon.HideIcon();
 		}
-		else if(nHiddenWindows != 0 && m_TrayIcon.IsVisible() == FALSE)
+		else if(nHiddenWindows != 0 && m_TrayIcon.IsIconVisible() == FALSE)
 		{
-			m_TrayIcon.Show();
+			m_TrayIcon.ShowIcon();
 		}
 	}
 
@@ -471,9 +554,13 @@ void CChromeTrayIcon::ShowContextMenu()
 	}
 
 	m_TrayMenu.CreatePopupMenu();
-	m_TrayMenu.AppendMenu(MF_STRING, TRAY_OPTIONS_COMMAND, m_language.strOptions.c_str());
+	
+	if(m_options.bShowOptions)
+	{
+		m_TrayMenu.AppendMenu(MF_STRING, TRAY_OPTIONS_COMMAND, m_language.strOptions.c_str());
+	}
 
-	if(m_options.bShowNewWindow || m_options.bShowNewTab)
+	if(m_options.bShowOptions && (m_options.bShowNewWindow || m_options.bShowNewTab))
 	{
 		m_TrayMenu.AppendMenu(MF_SEPARATOR, TRAY_OPTIONS_COMMAND, _T(""));
 	}
@@ -486,6 +573,65 @@ void CChromeTrayIcon::ShowContextMenu()
 	if(m_options.bShowNewTab)
 	{
 		m_TrayMenu.AppendMenu(MF_STRING, TRAY_NEW_TAB_COMMAND, m_language.strNewTab.c_str());
+	}
+
+	if(m_options.bShowFavorites && m_options.strFavorites.empty() == FALSE)
+	{
+		if(m_options.bShowOptions || m_options.bShowNewWindow || m_options.bShowNewTab)
+		{
+			m_TrayMenu.AppendMenu(MF_SEPARATOR, TRAY_OPTIONS_COMMAND, _T(""));
+		}
+
+		m_Favorites.clear();
+
+		vector<wstring> favorites;
+		vector<wstring> favoriteItem;
+
+		CMenu favoritesMenu;
+		favoritesMenu.CreatePopupMenu();
+
+		DWORD dwCmdId;
+
+		if(SplitString(m_options.strFavorites, favorites, _T("\n")))
+		{
+			for(size_t i = 0; i < favorites.size(); ++i)
+			{
+				if(SplitString(favorites[i], favoriteItem, _T(" http")))
+				{
+					if(favoriteItem.size() == 2)
+					{
+						dwCmdId = TRAY_FAVORITES_COMMAND + m_Favorites.size();
+
+						favoritesMenu.AppendMenu(MF_STRING, dwCmdId, favoriteItem[0].c_str());
+						m_Favorites[dwCmdId] = favoriteItem[1].c_str();
+					}
+				}
+			}
+		}
+
+		m_TrayMenu.AppendMenu(MF_POPUP | MF_STRING, (UINT_PTR)favoritesMenu.m_hMenu, m_language.strFavorites.c_str());
+
+		/*
+		CMenu favoritesMenu;
+		favoritesMenu.CreatePopupMenu();
+
+		for(size_t k = 0; k < tabs.size(); ++k)
+		{
+			tab = tabs[k];
+
+			DebugLog(_T("Tab title: %s"), tab.strTitle.c_str());
+
+			if(tab.strTitle.size() > ContexMenuItemTextMax)
+			{
+				tab.strTitle = tab.strTitle.substr(ContexMenuItemTextMax);
+				tab.strTitle += _T("...");
+			}
+
+			subMenu.AppendMenu(MF_STRING, TRAY_MENU_COMMAND + 100 * i + tab.nId, tab.strTitle.c_str());
+		}
+
+		m_TrayMenu.AppendMenu(MF_POPUP | MF_STRING, (UINT_PTR)subMenu.m_hMenu, szWindowName);
+		*/
 	}
 
 	BOOL	bNeedToAddSeparator	= TRUE;
@@ -628,10 +774,14 @@ HICON CChromeTrayIcon::GetChromeWindowIcon()
 
 	if(hIcon = (HICON)SendMessage(hChromeWnd, WM_GETICON, ICON_SMALL, 0))
 	{
+		hIcon = (HICON)CopyImage(hIcon, IMAGE_ICON, 16, 16, LR_DEFAULTSIZE);
+
 		return hIcon;
 	}
 	else if (hIcon = (HICON)GetClassLong(hChromeWnd, GCL_HICON))
 	{
+		hIcon = (HICON)CopyImage(hIcon, IMAGE_ICON, 16, 16, LR_DEFAULTSIZE);
+
 		return hIcon;
 	}
 
@@ -657,19 +807,37 @@ HWND CChromeTrayIcon::FindVisibleChromeWindow()
 		}
 	}
 
-	/*
-	HWND hChildWindow = NULL;
-
-	for(size_t j = 0; j < _countof(ChromeWindowClasses); ++j)
-	{
-		hChildWindow = FindWindowEx(hWnd, NULL, ChromeWindowClasses[j], NULL);
-
-		if(hChildWindow != NULL)
-		{
-			return hWnd;
-		}
-	}
-	*/
-
 	return NULL;
+}
+
+BOOL CChromeTrayIcon::RegisterHotKeys()
+{
+	BOOL bResult;
+
+	if(m_HotKeyId == 0)
+	{
+		m_HotKeyId = GlobalAddAtom(_T("chromeTrayHotKey"));
+	}
+	else
+	{
+		UnregisterHotKey(m_hWnd, m_HotKeyId);
+	}
+
+	//DebugLog(_T("Hot key id=%d mod=%d key=%d GLE: %lu"), 
+	//	m_HotKeyId, m_options.wBossModifier, m_options.wBossKey, GetLastError());
+
+	bResult = RegisterHotKey(m_hWnd, m_HotKeyId, 6, m_options.wBossKey);
+	//DebugLog(_T("RegisterHotKey m_hWnd=%X result=%d GLE: %lu"), m_hWnd, bResult, GetLastError());
+
+	return bResult;
+}
+
+void CChromeTrayIcon::UnregisterHotKeys()
+{
+	if(m_HotKeyId != 0)
+	{
+		UnregisterHotKey(m_hWnd, (int)m_HotKeyId);
+		GlobalDeleteAtom(m_HotKeyId);
+		m_HotKeyId = 0;
+	}
 }

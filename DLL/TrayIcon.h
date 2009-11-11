@@ -37,19 +37,24 @@ public:
 	BOOL SetIcon(HICON hIcon);
 	BOOL SetTooltip(LPCTSTR lpszTooltip);
 
-	BOOL Hide();
-	BOOL Show();
+	BOOL HideIcon();
+	BOOL ShowIcon();
 
-	BOOL IsVisible()
+	BOOL IsIconVisible()
 	{
 		return m_bVisible;
 	}
+
+	BOOL ShowBaloon(LPCTSTR lpszTitle, LPCTSTR lpszText);
 
 protected:
 	LRESULT OnMouseCommand(LPARAM /*uMsg*/, BOOL& bHandled);
 
 protected:
-	void Init();
+	size_t MaxTextLengthToCopy(size_t nTextLength, size_t nMaxLength)
+	{
+		return (nMaxLength > nTextLength) ? nTextLength : nMaxLength;
+	}
 
 protected:
 	BOOL			m_bVisible;

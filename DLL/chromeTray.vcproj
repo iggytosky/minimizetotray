@@ -251,6 +251,14 @@
 				RelativePath=".\TrayIcon.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\TrayPopup.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\utils.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -278,6 +286,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\PopupDialog.h"
+				>
+			</File>
+			<File
 				RelativePath=".\resource.h"
 				>
 			</File>
@@ -302,7 +314,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\TrayPopup.h"
+				>
+			</File>
+			<File
 				RelativePath=".\types.h"
+				>
+			</File>
+			<File
+				RelativePath=".\utils.h"
 				>
 			</File>
 		</Filter>
