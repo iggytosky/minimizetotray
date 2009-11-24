@@ -2,6 +2,8 @@
 #include "resource.h"
 #include "TrayPopup.h"
 
+#define TIMER_HIDE_DELAY_VALUE (10 * 1000)
+
 CTrayPopup::CTrayPopup(void)
 {
 	m_bCloseBoxHighlite				= FALSE;
@@ -252,11 +254,29 @@ LRESULT CTrayPopup::OnTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOO
 	{
 		POINT ptCurrentCursorPos;
 		GetCursorPos(&ptCurrentCursorPos);
+
 		if(m_ptInitialCurcorPos.x != ptCurrentCursorPos.x || 
 		   m_ptInitialCurcorPos.y != ptCurrentCursorPos.y)
 		{
-			KillTimer(TIMER_HIDE_DELAY);
-			PopdownWindow();
+			BOOL bUserActive	= TRUE;
+
+			LASTINPUTINFO lii	= {0};
+			lii.cbSize			= sizeof(lii);
+
+			GetLastInputInfo(&lii);
+
+			DWORD dwTimeDelta	= (GetTickCount() - lii.dwTime);
+
+			if(dwTimeDelta > TIMER_HIDE_DELAY_VALUE)
+			{
+				bUserActive = FALSE;
+			}
+
+			if(bUserActive)
+			{
+				KillTimer(TIMER_HIDE_DELAY);
+				PopdownWindow();
+			}
 		}
 	}
 	else if(wParam == TIMER_SHOW_WINDOW)

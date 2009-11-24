@@ -15,10 +15,12 @@ CChromeTrayIcon::CChromeTrayIcon(void) :
 		m_hIcon(NULL), m_HotKeyId(0),
 		m_bChromeIsHidded(FALSE)
 {
+	InitializeCriticalSection(&m_csWindowsList);
 }
 
 CChromeTrayIcon::~CChromeTrayIcon(void)
 {
+	DeleteCriticalSection(&m_csWindowsList);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -64,6 +66,8 @@ BOOL CChromeTrayIcon::DestroyTrayIcon()
 {
 	UnregisterHotKeys();
 
+	EnterCriticalSection(&m_csWindowsList);
+
 	for(size_t i = 0; i < m_ChromeWindows.size(); ++i)
 	{
 		if(::IsWindow(m_ChromeWindows[i].hWnd) == FALSE)
@@ -71,6 +75,10 @@ BOOL CChromeTrayIcon::DestroyTrayIcon()
 			ShowChromeWindow(m_ChromeWindows[i].hWnd);
 		}
 	}
+
+	m_ChromeWindows.clear();
+
+	LeaveCriticalSection(&m_csWindowsList);
 
 	if(IsWindow())
 	{
@@ -210,6 +218,8 @@ LRESULT CChromeTrayIcon::OnHotKey(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 
 		HWND hWnd;
 
+		EnterCriticalSection(&m_csWindowsList);
+
 		for(size_t i = 0; i < m_ChromeWindows.size(); ++i)
 		{
 			hWnd = m_ChromeWindows[i].hWnd;
@@ -219,6 +229,8 @@ LRESULT CChromeTrayIcon::OnHotKey(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 				HideChromeWindow(hWnd);
 			}
 		}
+
+		LeaveCriticalSection(&m_csWindowsList);
 
 		if(m_options.bBossHideTrayIcon)
 		{
@@ -330,6 +342,8 @@ void CChromeTrayIcon::ShowChromeWindow(HWND hWnd)
 
 	TCHAR szTooltip[255] = {0};
 
+	EnterCriticalSection(&m_csWindowsList);
+
 	for(size_t i = 0; i < m_ChromeWindows.size(); ++i)
 	{
 		hWnd = m_ChromeWindows[i].hWnd;
@@ -340,6 +354,8 @@ void CChromeTrayIcon::ShowChromeWindow(HWND hWnd)
 			break;
 		}
 	}
+
+	LeaveCriticalSection(&m_csWindowsList);
 
 	if(wcslen(szTooltip) == 0)
 	{
@@ -354,6 +370,8 @@ void CChromeTrayIcon::HideChromeWindow(HWND hWnd)
 	BOOL	bFound			= FALSE;
 
 	TCHAR	szTooltip[255]	= {0};
+
+	EnterCriticalSection(&m_csWindowsList);
 
 	for(size_t i = 0; i < m_ChromeWindows.size(); ++i)
 	{
@@ -370,6 +388,8 @@ void CChromeTrayIcon::HideChromeWindow(HWND hWnd)
 		m_ChromeWindows.push_back(newWnd);
 	}
 
+	LeaveCriticalSection(&m_csWindowsList);
+
 	::GetWindowText(hWnd, szTooltip, _countof(szTooltip));
 	m_TrayIcon.SetTooltip(szTooltip);
 
@@ -378,17 +398,32 @@ void CChromeTrayIcon::HideChromeWindow(HWND hWnd)
 
 void CChromeTrayIcon::AddChromeWindow(int nWindowId)
 {
+	DebugLog(_T("AddChromeWindow id=%d"), nWindowId);
+
 	HWND hChromeWindow = FindVisibleChromeWindow();
+
+	DebugLog(_T("AddChromeWindow hChromeWindow == %X"), hChromeWindow);
 
 	if(hChromeWindow == NULL)
 	{
 		return;
 	}
 
+	EnterCriticalSection(&m_csWindowsList);
+
 	for(size_t i = 0; i < m_ChromeWindows.size(); ++i)
 	{
 		if(m_ChromeWindows[i].hWnd == hChromeWindow)
 		{
+			if(m_ChromeWindows[i].nId == nWindowId)
+			{
+				LeaveCriticalSection(&m_csWindowsList);
+
+				DebugLog(_T("AddChromeWindow window already exist"), hChromeWindow);
+
+				return;
+			}
+
 			m_ChromeWindows.erase(m_ChromeWindows.begin() + i);
 
 			if(i != 0)
@@ -401,11 +436,15 @@ void CChromeTrayIcon::AddChromeWindow(int nWindowId)
 	ChromeWindow chromeWnd = {nWindowId, hChromeWindow};
 	m_ChromeWindows.push_back(chromeWnd);
 
-	m_TrayIcon.ShowBaloon(_T("Test"), _T("Test"));
+	LeaveCriticalSection(&m_csWindowsList);
 }
 
 void CChromeTrayIcon::RemoveChromeWindow(int nWindowId)
 {
+	DebugLog(_T("RemoveChromeWindow id=%d m_ChromeWindows.size=%d"), nWindowId, m_ChromeWindows.size());
+
+	EnterCriticalSection(&m_csWindowsList);
+
 	for(size_t i = 0; i < m_ChromeWindows.size(); ++i)
 	{
 		if(m_ChromeWindows[i].nId == nWindowId)
@@ -414,6 +453,10 @@ void CChromeTrayIcon::RemoveChromeWindow(int nWindowId)
 			break;
 		}
 	}
+
+	DebugLog(_T("RemoveChromeWindow new size=%d"),  m_ChromeWindows.size());
+
+	LeaveCriticalSection(&m_csWindowsList);
 }
 
 void CChromeTrayIcon::ChromeWindowFocusChanged()
@@ -477,6 +520,8 @@ BOOL CChromeTrayIcon::Worker()
 	{
 		size_t nHiddenWindows = 0;
 
+		EnterCriticalSection(&m_csWindowsList);
+
 		for(size_t i = 0; i < m_ChromeWindows.size(); ++i)
 		{
 			if(::IsWindowVisible(m_ChromeWindows[i].hWnd) == FALSE)
@@ -485,8 +530,12 @@ BOOL CChromeTrayIcon::Worker()
 			}
 		}
 
+		LeaveCriticalSection(&m_csWindowsList);
+
 		if(nHiddenWindows == 0 && m_TrayIcon.IsIconVisible())
 		{
+			DebugLog(_T("m_ChromeWindows.size=%d"), m_ChromeWindows.size());
+
 			m_TrayIcon.HideIcon();
 		}
 		else if(nHiddenWindows != 0 && m_TrayIcon.IsIconVisible() == FALSE)
@@ -507,6 +556,8 @@ void CChromeTrayIcon::RestoreAllChromeWindows()
 	HWND hWnd;
 
 	size_t nRestoredWindows = 0;
+
+	EnterCriticalSection(&m_csWindowsList);
 
 	for(size_t i = 0; i < m_ChromeWindows.size(); ++i)
 	{
@@ -530,6 +581,8 @@ void CChromeTrayIcon::RestoreAllChromeWindows()
 			++nRestoredWindows;
 		}
 	}
+
+	LeaveCriticalSection(&m_csWindowsList);
 
 	if(nRestoredWindows == 0 && m_ChromeWindows.size() != 0)
 	{
@@ -610,34 +663,14 @@ void CChromeTrayIcon::ShowContextMenu()
 		}
 
 		m_TrayMenu.AppendMenu(MF_POPUP | MF_STRING, (UINT_PTR)favoritesMenu.m_hMenu, m_language.strFavorites.c_str());
-
-		/*
-		CMenu favoritesMenu;
-		favoritesMenu.CreatePopupMenu();
-
-		for(size_t k = 0; k < tabs.size(); ++k)
-		{
-			tab = tabs[k];
-
-			DebugLog(_T("Tab title: %s"), tab.strTitle.c_str());
-
-			if(tab.strTitle.size() > ContexMenuItemTextMax)
-			{
-				tab.strTitle = tab.strTitle.substr(ContexMenuItemTextMax);
-				tab.strTitle += _T("...");
-			}
-
-			subMenu.AppendMenu(MF_STRING, TRAY_MENU_COMMAND + 100 * i + tab.nId, tab.strTitle.c_str());
-		}
-
-		m_TrayMenu.AppendMenu(MF_POPUP | MF_STRING, (UINT_PTR)subMenu.m_hMenu, szWindowName);
-		*/
 	}
 
 	BOOL	bNeedToAddSeparator	= TRUE;
 	vector<ChromeTab> tabs;
 	HWND	hWnd				= NULL;
 	HWND	hChildWindow		= NULL;
+
+	EnterCriticalSection(&m_csWindowsList);
 
 	for(size_t i = 0; i < m_ChromeWindows.size(); ++i)
 	{
@@ -719,6 +752,8 @@ void CChromeTrayIcon::ShowContextMenu()
 			}
 		}
 	}
+
+	LeaveCriticalSection(&m_csWindowsList);
 
 	if(m_TrayMenu.GetMenuItemCount() == 0)
 	{
@@ -823,11 +858,7 @@ BOOL CChromeTrayIcon::RegisterHotKeys()
 		UnregisterHotKey(m_hWnd, m_HotKeyId);
 	}
 
-	//DebugLog(_T("Hot key id=%d mod=%d key=%d GLE: %lu"), 
-	//	m_HotKeyId, m_options.wBossModifier, m_options.wBossKey, GetLastError());
-
 	bResult = RegisterHotKey(m_hWnd, m_HotKeyId, 6, m_options.wBossKey);
-	//DebugLog(_T("RegisterHotKey m_hWnd=%X result=%d GLE: %lu"), m_hWnd, bResult, GetLastError());
 
 	return bResult;
 }

@@ -106,6 +106,8 @@ protected:
 
 	ChromeTrayIconOptions	m_options;
 	ChromeTrayIconLanguage	m_language;
+
+	CRITICAL_SECTION		m_csWindowsList;
 };
 
 extern CChromeTrayIcon	g_ChromeTrayIcon;
