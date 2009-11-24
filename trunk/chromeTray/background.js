@@ -139,11 +139,11 @@ function getOptions()
 /////////////////////////////////////////////////////////////////////////////////
 
 chrome.windows.onFocusChanged.addListener(function(windowId) {
-	notifyFocusChanged(windowId);
+	notifyWindowCreated(windowId);
 });
 
 chrome.windows.onCreated.addListener(function(wnd) {
-	notifyWindowCreated(wnd.id);
+	//notifyWindowCreated(wnd.id);
 });
 
 chrome.windows.onRemoved.addListener(function(windowId) {
