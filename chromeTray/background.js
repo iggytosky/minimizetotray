@@ -1,10 +1,12 @@
 initPlugin();
 
+/*
 function notifyFocusChanged(windowId)
 {
 	var plugin = document.getElementById("minimize-to-tray-extension");
 	plugin.OnFocusChanged(windowId);
 }
+*/
 
 function notifyWindowCreated(windowId)
 {
@@ -12,11 +14,13 @@ function notifyWindowCreated(windowId)
 	plugin.OnWindowCreated(windowId);
 }
 
+/*
 function notifyWindowRemoved(windowId)
 {
 	var plugin = document.getElementById("minimize-to-tray-extension");
 	plugin.OnWindowRemoved(windowId);
 }
+*/
 
 function notifyOptionsChanged(windowId)
 {
@@ -141,17 +145,19 @@ function getOptions()
 
 /////////////////////////////////////////////////////////////////////////////////
 
+/*
 chrome.windows.onFocusChanged.addListener(function(windowId) {
 	notifyWindowCreated(windowId);
 });
 
 chrome.windows.onCreated.addListener(function(wnd) {
-	//notifyWindowCreated(wnd.id);
+	notifyWindowCreated(wnd.id);
 });
 
 chrome.windows.onRemoved.addListener(function(windowId) {
 	notifyWindowRemoved(windowId);
 });
+*/
 
 chrome.extension.onConnect.addListener(function(port) {
 	if(port.name == 'minimize-to-tray')
