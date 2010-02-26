@@ -35,12 +35,14 @@ BOOL SplitString(const wstring& str, vector<wstring>& results, const wstring del
 	{
 		results.push_back(str);
 	}
-
-	while(lpos != string::npos)
+	else
 	{
-		results.push_back(str.substr(lpos, pos - lpos));
-		lpos = (pos == string::npos)?string::npos:(pos + 1);
-		pos = str.find(delim, lpos);
+		while(lpos != string::npos)
+		{
+			results.push_back(str.substr(lpos, pos - lpos));
+			lpos = (pos == string::npos)?string::npos:(pos + 1);
+			pos = str.find(delim, lpos);
+		}
 	}
 
 	return (results.size() != 0);

@@ -20,25 +20,31 @@ typedef struct ChromeTrayIconOptions
 {
 	ChromeTrayIconOptions()
 	{
-		bHideTray			= TRUE;
+		bHideTray				= TRUE;
+
+		bMinimizeOnLeftButton	= TRUE;
+		bMinimizeOnRightButton	= FALSE;
 		
-		actLClick			= Nothing;
-		actRClick			= ContextMenu;
-		actLDblClick		= Restore;
-		actRDblClick		= Nothing;
+		actLClick				= Nothing;
+		actRClick				= ContextMenu;
+		actLDblClick			= Restore;
+		actRDblClick			= Nothing;
 
-		bShowNewWindow		= FALSE;
-		bShowNewTab			= FALSE;
-		bShowOptions		= TRUE;
-		bShowFavorites		= FALSE;
+		bShowNewWindow			= FALSE;
+		bShowNewTab				= FALSE;
+		bShowOptions			= TRUE;
+		bShowFavorites			= FALSE;
 
-		bEnableBossKey		= FALSE;
-		wBossKey			= 0;
-		wBossModifier		= 0;
-		bBossHideTrayIcon	= FALSE;
+		bEnableBossKey			= FALSE;
+		wBossKey				= 0;
+		wBossModifier			= 0;
+		bBossHideTrayIcon		= FALSE;
 	}
 
 	BOOL		bHideTray;
+
+	BOOL		bMinimizeOnLeftButton;
+	BOOL		bMinimizeOnRightButton;
 
 	TrayAction	actLClick;
 	TrayAction	actRClick;

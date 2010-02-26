@@ -6,7 +6,8 @@
 
 #include "TrayIcon.h"
 #include "TrayPopup.h"
-#include "MonitoringThread.h"
+//#include "MonitoringThread.h"
+#include "MinimizeMonitor.h"
 
 #define TRAY_MENU_COMMAND		10000
 #define TRAY_OPTIONS_COMMAND	9999
@@ -15,8 +16,10 @@
 #define TRAY_NEW_WND_COMMAND	9997
 #define TRAY_FAVORITES_COMMAND	9000
 
-class CChromeTrayIcon : public CDialogImpl<CChromeTrayIcon>, 
-						public CMonitoringThread
+class CChromeTrayIcon : public CDialogImpl<CChromeTrayIcon>,
+						private CMinimizeMonitorCallback
+						/*, 
+						public CMonitoringThread*/
 {
 public:
 	enum { IDD = IDD_DUMMY };
@@ -57,9 +60,9 @@ public:
 	void HideChromeWindow(HWND hWnd);
 	void ShowChromeWindow(HWND hWnd);
 
-	void AddChromeWindow(int nWindowId);
-	void RemoveChromeWindow(int nWindowId);
-	void ChromeWindowFocusChanged();
+	//void AddChromeWindow(int nWindowId);
+	//void RemoveChromeWindow(int nWindowId);
+	//void ChromeWindowFocusChanged();
 
 	BOOL OptionsChanged();
 
@@ -76,8 +79,12 @@ protected:
 	void RestoreAllChromeWindows();
 	void ShowContextMenu();
 
-protected:
-	virtual BOOL Worker();
+private:
+	//virtual BOOL Worker();
+	BOOL StartMonitoring();
+	BOOL StopMonitoring();
+
+	virtual BOOL OnMouseButtonUp(const HWND &targetWindow, const DWORD &mouseButton, const POINT &coord);
 
 	BOOL ReCreateTrayIcon();
 
@@ -108,6 +115,8 @@ protected:
 	ChromeTrayIconLanguage	m_language;
 
 	CRITICAL_SECTION		m_csWindowsList;
+
+	CMinimizeMonitor	m_mouseMonitor;
 };
 
 extern CChromeTrayIcon	g_ChromeTrayIcon;

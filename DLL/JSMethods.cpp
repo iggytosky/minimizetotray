@@ -23,15 +23,15 @@ void CJSMethods::RegisterMethods(CScriptableNPObject *pObject)
 {
 	m_pScriptableObject = pObject;
 
-	pObject->RegisterMethod("OnFocusChanged", OnFocusChanged);
-	pObject->RegisterMethod("OnWindowCreated", OnWindowCreated);
-	pObject->RegisterMethod("OnWindowRemoved", OnWindowRemoved);
+	//pObject->RegisterMethod("OnFocusChanged", OnFocusChanged);
+	//pObject->RegisterMethod("OnWindowCreated", OnWindowCreated);
+	//pObject->RegisterMethod("OnWindowRemoved", OnWindowRemoved);
 	pObject->RegisterMethod("OnOptionsChanged", OnOptionsChanged);
 
 	pObject->RegisterMethod("SetIcon", SetIcon);
 	pObject->RegisterMethod("PopupNotify", PopupNotify);
 }
-
+/*
 bool CJSMethods::OnFocusChanged(NPNetscapeFuncs *pBrowserFuncs, NPP pluginInstance, const uint32_t argCount, const NPVariant *args)
 {
 	DebugLog(_T("CJSMethods::OnFocusChanged"));
@@ -68,6 +68,7 @@ bool CJSMethods::OnWindowRemoved(NPNetscapeFuncs *pBrowserFuncs, NPP pluginInsta
 
 	return true;
 }
+*/
 
 bool CJSMethods::OnOptionsChanged(NPNetscapeFuncs *pBrowserFuncs, NPP pluginInstance, const uint32_t argCount, const NPVariant *args)
 {
@@ -443,6 +444,16 @@ bool CJSMethods::GetOptions(ChromeTrayIconOptions &options)
 			{
 				wstring strValue;
 
+				if(CJSValue::GetProperty(pBrowserFuncs, pluginInstance, pArray, "minimizeOnLeftButton", strValue))
+				{
+					options.bMinimizeOnLeftButton = (strValue == _T("true"));
+				}
+
+				if(CJSValue::GetProperty(pBrowserFuncs, pluginInstance, pArray, "minimizeOnRightButton", strValue))
+				{
+					options.bMinimizeOnRightButton = (strValue == _T("true"));
+				}
+
 				if(CJSValue::GetProperty(pBrowserFuncs, pluginInstance, pArray, "trayHide", strValue))
 				{
 					options.bHideTray = (strValue == _T("true"));
@@ -511,6 +522,7 @@ bool CJSMethods::GetOptions(ChromeTrayIconOptions &options)
 				{
 					if(strValue.empty() == FALSE)
 					{
+						transform(strValue.begin(), strValue.end(), strValue.begin(), toupper);
 						options.wBossKey = (WORD)strValue[0];
 					}
 				}
