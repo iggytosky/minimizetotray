@@ -4,6 +4,10 @@ RegisterLang();
 lang_en_US = 
 {
 	lngLanguage: "Language",
+	
+	lngMinimizeOn: "Hide to Tray On",
+	lngMinimizeOnLeftButton: "Minimize on Left button down on minimize button",
+	lngMinimizeOnRightButton: "Minimize on Right button down on minimize button",
 		
 	lngTrayIcon: "Tray Icon",
 	lngHideTrayIcon: "Hide tray icon if no minimized Chrome windows",

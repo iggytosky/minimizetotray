@@ -116,6 +116,9 @@ function readProperty(property, defValue)
 function getOptions()
 {
 	return {
+		minimizeOnLeftButton: readProperty("minimizeOnLeftButton", "true"),
+		minimizeOnRightButton: readProperty("minimizeOnRightButton", "false"),
+
 		trayHide: readProperty("trayHide", "false"),
 		
 		actLClick: readProperty("actLClick", "0"),

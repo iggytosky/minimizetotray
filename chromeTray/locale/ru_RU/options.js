@@ -4,7 +4,11 @@ RegisterLang();
 lang_ru_RU = 
 {
 	lngLanguage: "Язык",
-		
+
+	lngMinimizeOn: "Прятать в Трей",
+	lngMinimizeOnLeftButton: "При нажатии Левой клавиши мыши на кнопке сворачивания окна",
+	lngMinimizeOnRightButton: "При нажатии Правой клавиши мыши на кнопке сворачивания окна",
+
 	lngTrayIcon: "Иконка",
 	lngHideTrayIcon: "Прятать иконку, если нет скрытых окон",
 		
