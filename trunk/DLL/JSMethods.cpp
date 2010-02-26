@@ -24,7 +24,7 @@ void CJSMethods::RegisterMethods(CScriptableNPObject *pObject)
 	m_pScriptableObject = pObject;
 
 	//pObject->RegisterMethod("OnFocusChanged", OnFocusChanged);
-	//pObject->RegisterMethod("OnWindowCreated", OnWindowCreated);
+	pObject->RegisterMethod("OnWindowCreated", OnWindowCreated);
 	//pObject->RegisterMethod("OnWindowRemoved", OnWindowRemoved);
 	pObject->RegisterMethod("OnOptionsChanged", OnOptionsChanged);
 
@@ -40,9 +40,10 @@ bool CJSMethods::OnFocusChanged(NPNetscapeFuncs *pBrowserFuncs, NPP pluginInstan
 
 	return true;
 }
-
+*/
 bool CJSMethods::OnWindowCreated(NPNetscapeFuncs *pBrowserFuncs, NPP pluginInstance, const uint32_t argCount, const NPVariant *args)
 {
+	/*
 	DebugLog(_T("CJSMethods::OnWindowCreated"));
 
 	if(argCount == 0)
@@ -51,10 +52,12 @@ bool CJSMethods::OnWindowCreated(NPNetscapeFuncs *pBrowserFuncs, NPP pluginInsta
 	}
 
 	g_ChromeTrayIcon.AddChromeWindow(args[0].value.intValue);
+	*/
 
 	return true;
 }
 
+/*
 bool CJSMethods::OnWindowRemoved(NPNetscapeFuncs *pBrowserFuncs, NPP pluginInstance, const uint32_t argCount, const NPVariant *args)
 {
 	DebugLog(_T("CJSMethods::OnWindowRemoved"));
