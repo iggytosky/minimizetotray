@@ -5,6 +5,10 @@ lang_es_ES =
 {
 	lngLanguage: "Idioma",
 		
+	lngMinimizeOn: "Hide to Tray On",
+	lngMinimizeOnLeftButton: "Minimize on Left button down on minimize button",
+	lngMinimizeOnRightButton: "Minimize on Right button down on minimize button",
+
 	lngTrayIcon: "Icono de la bandeja del sistema",
 	lngHideTrayIcon: "Esconder icono si no hay ventanas de Chrome minimizadas",
 		

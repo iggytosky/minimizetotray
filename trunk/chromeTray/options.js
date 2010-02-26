@@ -139,6 +139,9 @@ function doDataExchange(save)
 	{
 		localStorage["language"] = getSelectedValue("language");
 		
+		localStorage["minimizeOnLeftButton"] = getCheckState("minimizeOnLeftButton");
+		localStorage["minimizeOnRightButton"] = getCheckState("minimizeOnRightButton");
+
 		localStorage["trayHide"] = getCheckState("trayHide");
 		
 		localStorage["actLClick"] = getSelectedValue("actLClick");
@@ -161,6 +164,9 @@ function doDataExchange(save)
 	{
 		setSelectedValue("language", readProperty("language", "en_US"));
 		
+		setCheckState("minimizeOnLeftButton", readProperty("minimizeOnLeftButton", "true"));
+		setCheckState("minimizeOnRightButton", readProperty("minimizeOnRightButton", "false"));
+
 		setCheckState("trayHide", readProperty("trayHide", "false"));
 		
 		setSelectedValue("actLClick", readProperty("actLClick", "0"));
