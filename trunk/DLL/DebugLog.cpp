@@ -82,7 +82,7 @@ BOOL CDebugLog::OpenLogFile()
 		return TRUE;
 	}
 
-	wstring strFilePath = _T("c:\\temp\\debug.log");
+	wstring strFilePath = _T("d:\\logs\\chrome.txt");
 
 	m_hLogFile = ::CreateFile(strFilePath.c_str(), GENERIC_WRITE, FILE_SHARE_READ, NULL, TRUNCATE_EXISTING, 0, NULL);
 

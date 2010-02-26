@@ -7,6 +7,7 @@
 
 static const TCHAR *ChromeWindowClass	= _T("Chrome_WindowImpl_0");
 static const TCHAR *ChromeWidgetClass	= _T("Chrome_WidgetWin_0");
+
 static LPCTSTR ChromeWindowClasses[]	= {ChromeWidgetClass, ChromeWindowClass};
 
 static const int ContexMenuItemTextMax	= 48;
@@ -31,6 +32,8 @@ BOOL CChromeTrayIcon::CreateTrayIcon(HINSTANCE hInstance)
 {
 	if(Create(NULL) == NULL)
 	{
+		DebugLog(_T("Failed to create the tray icon!\n GLE: %lu"), GetLastError());
+
 		return FALSE;
 	}
 
@@ -48,7 +51,8 @@ BOOL CChromeTrayIcon::CreateTrayIcon(HINSTANCE hInstance)
 
 	m_TrayPopup.SetIcon(hIcon);
 
-	RunMonitoring();
+	//RunMonitoring();
+	StartMonitoring();
 
 	return TRUE;
 }
@@ -395,7 +399,7 @@ void CChromeTrayIcon::HideChromeWindow(HWND hWnd)
 
 	::ShowWindow(hWnd, SW_HIDE);
 }
-
+/*
 void CChromeTrayIcon::AddChromeWindow(int nWindowId)
 {
 	DebugLog(_T("AddChromeWindow id=%d"), nWindowId);
@@ -462,6 +466,7 @@ void CChromeTrayIcon::RemoveChromeWindow(int nWindowId)
 void CChromeTrayIcon::ChromeWindowFocusChanged()
 {
 }
+*/
 
 BOOL CChromeTrayIcon::OptionsChanged()
 {
@@ -492,6 +497,132 @@ BOOL CChromeTrayIcon::OptionsChanged()
 //
 //////////////////////////////////////////////////////////////////////////
 
+BOOL CChromeTrayIcon::StartMonitoring()
+{
+	m_mouseMonitor.SetCallBack(this);
+	m_mouseMonitor.Start();
+
+	return TRUE;
+}
+
+BOOL CChromeTrayIcon::StopMonitoring()
+{
+	m_mouseMonitor.Stop();
+
+	return TRUE;
+}
+
+BOOL CChromeTrayIcon::OnMouseButtonUp(const HWND &targetWindow, const DWORD &mouseButton, const POINT &coord)
+{
+	TCHAR windowClass[255] = {0};
+
+	if(GetClassName(targetWindow, windowClass, _countof(windowClass)) == 0)
+	{
+		return FALSE;
+	}
+
+	BOOL isChromeWindow = FALSE;
+
+	for(size_t i = 0; i < _countof(ChromeWindowClasses); ++i)
+	{
+		if(_wcsicmp(ChromeWindowClasses[i], windowClass) == 0)
+		{
+			isChromeWindow = TRUE;
+
+			break;
+		}
+	}
+
+	if(isChromeWindow == FALSE)
+	{
+		DebugLog(_T("This is not Chrome window. Window class: %s\n"), windowClass);
+
+		return FALSE;
+	}
+
+	switch(mouseButton)
+	{
+	case VK_LBUTTON:
+		{
+			if(m_options.bMinimizeOnLeftButton)
+			{
+				HideChromeWindow(targetWindow);
+			}
+		}
+		break;
+
+	case VK_RBUTTON:
+		{
+			if(m_options.bMinimizeOnRightButton)
+			{
+				HideChromeWindow(targetWindow);
+			}
+		}
+		break;
+	}
+	/*
+	HWND hChromeWnd = WindowFromPoint(coord);
+
+	if(hChromeWnd == NULL)
+	{
+		return FALSE;
+	}
+
+	TCHAR windowClass[255] = {0};
+
+	if(GetClassName(hChromeWnd, windowClass, _countof(windowClass)) == 0)
+	{
+		return FALSE;
+	}
+
+	BOOL isChromeWindow = FALSE;
+
+	for(size_t i = 0; i < _countof(ChromeWindowClasses); ++i)
+	{
+		if(_wcsicmp(ChromeWindowClasses[i], windowClass) == 0)
+		{
+			isChromeWindow = TRUE;
+
+			break;
+		}
+	}
+
+	if(isChromeWindow == FALSE)
+	{
+		DebugLog(_T("This is not Chrome window. Window class: %s\n"), windowClass);
+
+		return FALSE;
+	}
+
+	LRESULT hitTestResult = ::SendMessage(hChromeWnd, WM_NCHITTEST, 0, MAKELPARAM(coord.x, coord.y));
+
+	DebugLog(_T("hitTestResult: %lu\n"), hitTestResult);
+
+	if(mouseButton == VK_LBUTTON)
+	{
+		//if(hitTestResult == HTNOWHERE)
+		{
+			if(::IsWindowVisible(hChromeWnd) && ::IsIconic(hChromeWnd))
+			{
+				HideChromeWindow(hChromeWnd);
+				//ATLTRACE(_T("Chrome is minimized!\n"));
+			}
+		}
+	}
+	else if(mouseButton == VK_RBUTTON)
+	{
+		if(hitTestResult == HTMINBUTTON)
+		{
+			//ATLTRACE(_T("Chrome is minimized!\n"));
+			//::SendMessage(hActiveWnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
+		}
+	}
+	*/
+
+	return TRUE;
+}
+
+/*
 BOOL CALLBACK EnumWindowsProc(HWND hWnd, LPARAM lParam)
 {
 	TCHAR szClassName[255] = {0};
@@ -546,7 +677,7 @@ BOOL CChromeTrayIcon::Worker()
 
 	return TRUE;
 }
-
+*/
 //////////////////////////////////////////////////////////////////////////
 //
 //////////////////////////////////////////////////////////////////////////
@@ -858,7 +989,7 @@ BOOL CChromeTrayIcon::RegisterHotKeys()
 		UnregisterHotKey(m_hWnd, m_HotKeyId);
 	}
 
-	bResult = RegisterHotKey(m_hWnd, m_HotKeyId, 6, m_options.wBossKey);
+	bResult = RegisterHotKey(m_hWnd, m_HotKeyId, m_options.wBossModifier, m_options.wBossKey);
 
 	return bResult;
 }
