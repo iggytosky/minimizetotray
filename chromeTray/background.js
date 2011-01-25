@@ -140,6 +140,12 @@ function getOptions()
 		bossMod2: readProperty("bossMod2", "0"),
 		bossKey: readProperty("bossKey", "0"),
 		bossHideTrayIcon: readProperty("bossHideTrayIcon", "false"),
+			
+			
+		enableRestoreAllHotkey: readProperty("enableRestoreAllHotkey", "false"),
+		restoreAllHotkeyMod1: readProperty("restoreAllHotkeyMod1", "0"),
+		restoreAllHotkeyMod2: readProperty("restoreAllHotkeyMod2", "0"),
+		restoreAllHotkeyKey: readProperty("restoreAllHotkeyKey", "0"),
 	};
 }
 

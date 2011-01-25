@@ -60,6 +60,7 @@
 			<label class="ctrl"><input type="checkbox" id="displayFavorites"/><span id="lngFavorites">Display 'Favorites'</span></label>
 			<textarea type="text" cols="40" rows="6" id="favorites"></textarea>
 		</div>
+<!-- Boss hot-keys -->
 		<br/>
 		<div class="menu">
 			<label><span id="lngBossKey">Boss key</span></label>
@@ -77,9 +78,30 @@
 				<option value="Alt">Alt</option>
 			</select>
 			&nbsp;<b>+</b>&nbsp;
-			<input type="text" id="bossKey" maxlength="1" style="width: 32px;"/>
+			<input type="text" id="bossKey" maxlength="1" style="width: 32px; text-transform:uppercase;"/>
 			<label class="ctrl"><input type="checkbox" id="bossHideTrayIcon"/><span id="lngBossHideTrayIcon">Hide tray icon</span></label>
 		</div>
+<!-- Unhide hot-keys -->
+		<br/>
+		<div class="menu">
+			<label><span id="lngRestoreAllHotkey">Resore all Chrome windows</span></label>
+			<label class="ctrl"><input type="checkbox" id="enableRestoreAllHotkey"/><span id="lngEnableRestoreAllHotkey">Enable</span></label>
+			<select id="restoreAllHotkeyMod1">
+				<option value="none">-</option>
+				<option value="Shift">Shift</option>
+				<option value="Ctrl">Ctrl</option>
+				<option value="Alt">Alt</option>
+			</select>
+			&nbsp;<b>+</b>&nbsp;
+			<select id="restoreAllHotkeyMod2">
+				<option value="Shift">Shift</option>
+				<option value="Ctrl">Ctrl</option>
+				<option value="Alt">Alt</option>
+			</select>
+			&nbsp;<b>+</b>&nbsp;
+			<input type="text" id="restoreAllHotkeyKey" maxlength="1" style="width: 32px; text-transform:uppercase;"/>
+		</div>
+		
 		<br/>
 		<br/>
 		<div class="menu">

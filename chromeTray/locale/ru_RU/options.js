@@ -34,7 +34,10 @@ lang_ru_RU =
 		
 	lngBossKey: "Boss key",
 	lngEnableBossKey: "Прятать все видимые окна Chrome при нажатии",
-	lngBossHideTrayIcon: "Прятать иконку"
+	lngBossHideTrayIcon: "Прятать иконку",
+	
+	lngRestoreAllHotkey: "Восстановление всех скрытых окон",
+	lngEnableRestoreAllHotkey: "Восстанавливать все окна при нажатии"
 }
 
 function RegisterLang()
