@@ -34,7 +34,10 @@ lang_en_US =
 		
 	lngBossKey: "Boss key",
 	lngEnableBossKey: "Hide all visible Chrome windows",
-	lngBossHideTrayIcon: "Hide tray icon"
+	lngBossHideTrayIcon: "Hide tray icon",
+		
+	lngRestoreAllHotkey: "Restore all hidden windows",
+	lngEnableRestoreAllHotkey: "Restore all hidden Chrome windows"
 }
 
 function RegisterLang()

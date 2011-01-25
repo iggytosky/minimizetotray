@@ -159,6 +159,11 @@ function doDataExchange(save)
 		localStorage["bossMod2"] = getSelectedValue("bossMod2");
 		localStorage["bossKey"] = getValue("bossKey");
 		localStorage["bossHideTrayIcon"] = getCheckState("bossHideTrayIcon");
+				
+		localStorage["enableRestoreAllHotkey"] = getCheckState("enableRestoreAllHotkey");
+		localStorage["restoreAllHotkeyMod1"] = getSelectedValue("restoreAllHotkeyMod1");
+		localStorage["restoreAllHotkeyMod2"] = getSelectedValue("restoreAllHotkeyMod2");
+		localStorage["restoreAllHotkeyKey"] = getValue("restoreAllHotkeyKey");
 	}
 	else
 	{
@@ -184,6 +189,11 @@ function doDataExchange(save)
 		setSelectedValue("bossMod2", readProperty("bossMod2", "Shift"));
 		setValue("bossKey", readProperty("bossKey", ""));
 		setCheckState("bossHideTrayIcon", readProperty("bossHideTrayIcon", "false"));
+		
+		setCheckState("enableRestoreAllHotkey", readProperty("enableRestoreAllHotkey", "false"));
+		setSelectedValue("restoreAllHotkeyMod1", readProperty("restoreAllHotkeyMod1", "Ctrl"));
+		setSelectedValue("restoreAllHotkeyMod2", readProperty("restoreAllHotkeyMod2", "Shift"));
+		setValue("restoreAllHotkeyKey", readProperty("restoreAllHotkeyKey", ""));
 	}
 }
 
